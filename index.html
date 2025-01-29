@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Marks Calculator</title>
+    <title>Course Marks Average</title>
     <style>
         * {
             margin: 0;
@@ -27,11 +27,16 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        h1 {
+        h1, h2 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
             font-size: 2em;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-top: 20px;
         }
 
         .input-section {
@@ -47,6 +52,8 @@
             cursor: pointer;
             font-size: 1em;
             transition: background 0.3s ease;
+            display: block;
+            margin: 0 auto;
         }
 
         .button:hover {
@@ -96,15 +103,36 @@
 
         .marks-list {
             margin: 15px 0;
-            padding: 10px;
+            padding: 15px;
             background: white;
             border-radius: 5px;
             border: 1px solid #dee2e6;
         }
 
+        .mark-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
         .error {
             color: #e74c3c;
+            text-align: center;
             margin: 10px 0;
+            padding: 10px;
+            background: #fee;
+            border-radius: 5px;
+        }
+
+        .final-result {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
         }
     </style>
 </head>
@@ -126,50 +154,70 @@
             numOfCourses = parseInt(numOfCourses);
 
             if (isNaN(numOfCourses) || numOfCourses <= 0) {
-                displayError("Please enter a valid number of courses!");
+                displayError("Invalid Input!");
                 return;
             }
 
-            // Step 2: Get course marks
+            // Step 2: Get course marks and calculate total
             let courseMarks = [];
+            let total = 0;
+
             for (let i = 1; i <= numOfCourses; i++) {
                 let mark;
                 do {
-                    mark = prompt(`Enter your mark for course ${i} (0-100):`);
-                    mark = parseFloat(mark);
+                    mark = parseFloat(prompt(`Enter your mark for course ${i}:`));
                     if (isNaN(mark) || mark < 0 || mark > 100) {
                         alert("Please enter a valid mark between 0 and 100.");
                     }
                 } while (isNaN(mark) || mark < 0 || mark > 100);
+
                 courseMarks.push(mark);
+                total += mark;
             }
 
-            // Calculate and display results
-            displayResults(courseMarks);
+            displayResults(courseMarks, total);
         }
 
-        function calculateGrade(average) {
-            if (average >= 90) return ["A+", "grade-A"];
-            if (average >= 80) return ["A", "grade-A"];
-            if (average >= 70) return ["B", "grade-B"];
-            if (average >= 60) return ["C", "grade-C"];
-            if (average >= 50) return ["D", "grade-D"];
-            return ["F", "grade-F"];
+        function getGradeInfo(average) {
+            if (average >= 90 && average <= 100) {
+                return ["A+", "grade-A"];
+            } else if (average >= 80 && average <= 89) {
+                return ["B", "grade-B"];
+            } else if (average >= 70 && average <= 79) {
+                return ["C", "grade-C"];
+            } else if (average >= 60 && average <= 69) {
+                return ["D", "grade-D"];
+            } else if (average < 60) {
+                return ["F", "grade-F"];
+            }
+            return ["Invalid", "grade-F"];
         }
 
-        function displayResults(marks) {
-            const average = marks.reduce((a, b) => a + b, 0) / marks.length;
-            const [grade, gradeClass] = calculateGrade(average);
+        function displayResults(marks, total) {
+            const average = total / marks.length;
+            const [grade, gradeClass] = getGradeInfo(average);
             
+            let marksHTML = marks.map((mark, index) => 
+                `<div class="mark-item">Course ${index + 1}: ${mark}</div>`
+            ).join('');
+
+            let message = `Your final average is ${average.toFixed(2)}. Your grade is ${grade}`;
+            if (average < 0 || average > 100) {
+                message = "Sorry, all the marks have to be from minimum 0 to maximum 100!";
+            }
+
             const resultsHTML = `
                 <div class="results">
                     <h2>Your Results</h2>
                     <div class="marks-list">
-                        <strong>Marks Entered:</strong> ${marks.join("%, ")}%
+                        <p>Your marks for each course are:</p>
+                        ${marksHTML}
                     </div>
-                    <p><strong>Average Mark:</strong> ${average.toFixed(2)}%</p>
                     <div class="grade ${gradeClass}">
-                        Final Grade: ${grade}
+                        Grade: ${grade}
+                    </div>
+                    <div class="final-result">
+                        ${message}
                     </div>
                 </div>
             `;
